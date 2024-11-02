@@ -10,7 +10,7 @@ def exp_pdf(T: float,
     Parameters
     ----------
     T : float
-        Time
+        random variable
     lam : float
         Rate parameter
 
@@ -34,7 +34,7 @@ def exp_cdf(T: float,
     Parameters
     ----------
     T : float
-        Time
+        random variable
     lam : float
         Rate parameter
 
