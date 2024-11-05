@@ -2,7 +2,7 @@ import numpy as np
 import scipy.integrate as integrate
 
 
-def exp_pdf(T: float, 
+def exp_pdf(t: float, 
             lam: float) -> float:
     """
     The probability density function of an exponential distribution.
@@ -20,13 +20,13 @@ def exp_pdf(T: float,
         The probability density at time T
     """
     
-    if T < 0:
+    if t < 0:
         return 0
     else:
-        return lam * np.exp(-lam * T)
+        return lam * np.exp(-lam * t)
     
 
-def exp_cdf(T: float, 
+def exp_cdf(t: float, 
             lam: float) -> float:
     """
     The cumulative distribution function (CDF) of an exponential distribution.
@@ -43,10 +43,10 @@ def exp_cdf(T: float,
     float
         The cumulative probability up to time T
     """
-    if T < 0:
+    if t < 0:
         return 0
     else:
-        return 1 - np.exp(-lam * T)
+        return 1 - np.exp(-lam * t)
     
 
 def numerical_integral(a: float, 
@@ -181,9 +181,9 @@ def compare_methods(lam: float,
 
 if __name__ == "__main__":
     # Parameters
-    a = 0
-    b = 1
-    lam = 1
+    a = 5
+    b = 15
+    lam = .1
 
     # Compare the analytical, python inbuilt, and numerical methods
     compare_methods(lam, a, b)
