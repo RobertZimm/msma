@@ -43,13 +43,13 @@ def single_unreliable_machine(p: float,
         t = 0
 
         while t <= runtime:
-            if current_state == "up": # p
+            if current_state == "up":
                 random_draw = np.random.exponential(1/p)
                 up_time += random_draw
                 t += random_draw
                 current_state = "down"
 
-            elif current_state == "down": # r
+            elif current_state == "down":
                 random_draw = np.random.exponential(1/r)
                 down_time += random_draw
                 t += random_draw
@@ -69,25 +69,25 @@ def compute_accuracy(p: float,
                      runtime: float, 
                      init_state: str = "up") -> float:
     """
-    Compute the accuracy of the numerical simulation of an unreliable machine
-    by comparing it to the analytical results.
+    Compute the accuracy of the numerical method for an unreliable machine
+    with two states, in terms of the mean squared error between the analytical
+    and numerical results.
 
     Parameters
     ----------
     p : float
-        Probability of failure.
+        Rate of failure when the machine is in the "up" state.
     r : float
-        Repair rate.
+        Rate of repair when the machine is in the "down" state.
     runtime : float
-        Simulation time.
+        Total time to simulate the machine.
     init_state : str, optional
         Initial state of the machine, either "up" or "down". Default is "up".
 
     Returns
     -------
     float
-        The absolute difference between the numerical and analytical results,
-        representing the accuracy of the numerical simulation.
+        The mean squared error between the analytical and numerical results.
     """
     analytical = single_unreliable_machine(p, r,  
                                            init_state=init_state, 
@@ -101,5 +101,6 @@ def compute_accuracy(p: float,
         
 
 if __name__ == "__main__":
+    # Test the accuracy of the numerical method
     for i in range(1, 10):
         print(compute_accuracy(0.1, 0.05, 10**i, init_state="up"))
