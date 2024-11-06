@@ -1,0 +1,11 @@
+Dear all,
+
+Building on today's analysis of a CTMC model of an unreliable machine with two states (up and down) and exponentially distributed times to failure (with rate p) and repair (with rate r), for which we determined the availability analytically, I now want you to develop a Python program to do a discrete-event simulation of this manufacturing system and determine the availability numerically via simulation.
+
+The input of the program hence have to be rates p and r for failures and repairs, respectively, as well as the length of the time for which you simulate the system and the initial state (up or down). Then you will proceed in time, starting at time 0, draw a realization of the time to the next change of the system state (from up to down or from down to up, depending on the current state), then move the current time pointer forward by the just determined time to failure or time to repair and change the state. Repeat until the simulated time is over. Track the fraction of time you are in either state. Compare the simulated availability to the analytically determined availability from today's classroom session. What determines the accuracy of your simulation? Can you think of a measure of the accuracy, and find a way to compute it within your program?
+
+I am looking forward to seeing your code next Tuesday in class during the exercise session.
+
+Have fun!
+
+Stefan Helber
