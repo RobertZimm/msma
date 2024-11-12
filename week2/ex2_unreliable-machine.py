@@ -96,11 +96,17 @@ def compute_accuracy(p: float,
                                           runtime, 
                                           init_state=init_state, 
                                           mode="numerical")
+    
+    # print(f"Analytical: {analytical}")
+    # print(f"Numerical: {numerical}")
 
     return mean_squared_error(analytical, numerical)
         
 
 if __name__ == "__main__":
     # Test the accuracy of the numerical method
+    p = 0.1
+    r = 0.05
+    
     for i in range(1, 10):
-        print(compute_accuracy(0.1, 0.05, 10**i, init_state="up"))
+        print(compute_accuracy(p, r, 10**i, init_state="up"))
