@@ -1,5 +1,5 @@
 import numpy as np
-
+import random
 
 
 def two_rel_machines(mu_1: float, mu_2: float, C: int, runtime: int):
@@ -9,43 +9,39 @@ def two_rel_machines(mu_1: float, mu_2: float, C: int, runtime: int):
 
     while t < runtime:
         if current_state == 0:
-            draw = np.random.exponential(1/mu_1)
-            t += draw
-            state_times[current_state] += draw
+            draw_T1 = np.random.exponential(1/mu_1)
+            t += draw_T1
+            state_times[current_state] += draw_T1
             current_state += 1
         
         elif current_state == C+2:
-            draw = np.random.exponential(1/mu_2)
-            t += draw
-            state_times[current_state] += draw
-
+            draw_T1 = np.random.exponential(1/mu_2)
+            t += draw_T1
+            state_times[current_state] += draw_T1
             current_state -= 1
 
         else:
-            draw_mu_1 = np.random.exponential(1/mu_1)
-            draw_mu_2 = np.random.exponential(1/mu_2)
+            draw_T1 = np.random.exponential(1/mu_1)
+            draw_T2 = np.random.exponential(1/mu_2)
 
-            if draw_mu_1 < draw_mu_2:
-                t += draw_mu_1
-                state_times[current_state] += draw_mu_1
-
+            if draw_T1 < draw_T2:
+                t += draw_T1
+                state_times[current_state] += draw_T1
                 current_state += 1
 
             else:
-                t += draw_mu_2
-                state_times[current_state] += draw_mu_2
-
+                t += draw_T2
+                state_times[current_state] += draw_T2
                 current_state -= 1
 
-    # count_TH_i[1] = (mu_1/mu_2) * count_TH_i[0]
-
+    pi_hat = [0 for _ in range(len(state_times))]
     for i in range(len(state_times)):
-        state_times[i] /= t
+        pi_hat[i] = state_times[i] / t
 
     n_bar = sum([i * state_times[i] for i in range(len(state_times))])
-    TH_i = [calc_TH1(C, mu_1, mu_2, state_times), calc_TH2(C, mu_1, state_times)]
+    TH_i = [calc_TH1(C, mu_1, mu_2, pi_hat), calc_TH2(C, mu_1, pi_hat)]
 
-    return n_bar, state_times, TH_i
+    return n_bar, pi_hat, TH_i
 
 
 def calc_Q(C: int, mu_1: float, mu_2: float):
@@ -107,8 +103,8 @@ def calc_TH2(C: int, mu_1: float, pi: list):
 
 if __name__ == "__main__":
     C = 2
-    mu_1 = 0.3
-    mu_2 = 0.6
+    mu_1 = 0.1
+    mu_2 = 0.45
 
     # test_Q_sing(C, mu_1, mu_2)
 
