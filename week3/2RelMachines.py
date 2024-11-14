@@ -1,5 +1,4 @@
 import numpy as np
-import random
 
 
 def two_rel_machines(mu_1: float, mu_2: float, C: int, runtime: int):
