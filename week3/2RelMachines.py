@@ -27,6 +27,7 @@ def two_rel_machines(mu_1: float, mu_2: float, C: int, runtime: int):
     """
     state_times = [0 for _ in range(C+3)]
     t = 0
+    TH_i = [0, 0]
     current_state = 0
 
     while t < runtime:
@@ -34,11 +35,14 @@ def two_rel_machines(mu_1: float, mu_2: float, C: int, runtime: int):
             draw_T1 = np.random.exponential(1/mu_1)
             t += draw_T1
             state_times[current_state] += draw_T1
+            TH_i[0] += 1
             current_state += 1
         
         elif current_state == C+2:
             draw_T2 = np.random.exponential(1/mu_2)
             t += draw_T2
+            TH_i[0] += 1
+            TH_i[1] += 1
             state_times[current_state] += draw_T2
             current_state -= 1
 
@@ -49,11 +53,16 @@ def two_rel_machines(mu_1: float, mu_2: float, C: int, runtime: int):
             if draw_T1 < draw_T2:
                 t += draw_T1
                 state_times[current_state] += draw_T1
+
+                if current_state <= C:
+                    TH_i[0] += 1
+
                 current_state += 1
 
             else:
                 t += draw_T2
                 state_times[current_state] += draw_T2
+                TH_i[1] += 1
                 current_state -= 1
 
     pi_hat = [0 for _ in range(len(state_times))]
@@ -61,7 +70,11 @@ def two_rel_machines(mu_1: float, mu_2: float, C: int, runtime: int):
         pi_hat[i] = state_times[i] / t
 
     n_bar = sum([i * state_times[i] for i in range(len(state_times))])
-    TH_i = [calc_TH1(C, mu_1, mu_2, pi_hat), calc_TH2(C, mu_1, mu_2, pi_hat)]
+
+    TH_i[0] /= t
+    TH_i[1] /= t
+
+    # TH_i = [calc_TH1(C, mu_1, mu_2, pi_hat), calc_TH2(C, mu_2, pi_hat)]
 
     return n_bar, pi_hat, TH_i
 
@@ -212,16 +225,16 @@ def calc_TH2(C: int, mu_2: float, pi: list):
 
 if __name__ == "__main__":
     C = 2
-    mu_1 = 0.1
-    mu_2 = 0.3
+    mu_1 = 0.8
+    mu_2 = 0.5
 
     # test_Q_sing(C, mu_1, mu_2)
 
     pi = calc_pi(C, mu_1, mu_2)
     n_bar = calc_n_bar(pi)
-    TH_i = [calc_TH1(C, mu_1, mu_2, pi), calc_TH2(C, mu_1, mu_2, pi)]
+    TH_i = [calc_TH1(C, mu_1, mu_2, pi), calc_TH2(C, mu_2, pi)]
 
     n_bar_exp, pi_exp, TH_i_exp = two_rel_machines(mu_1, mu_2, C, 1e5)
     
-    print(pi, pi_exp)
+    # print(pi, pi_exp)
     print(TH_i, TH_i_exp)
