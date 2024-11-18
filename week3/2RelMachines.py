@@ -14,9 +14,9 @@ def two_rel_machines(mu_1: float, mu_2: float, C: int, runtime: int):
             current_state += 1
         
         elif current_state == C+2:
-            draw_T1 = np.random.exponential(1/mu_2)
-            t += draw_T1
-            state_times[current_state] += draw_T1
+            draw_T2 = np.random.exponential(1/mu_2)
+            t += draw_T2
+            state_times[current_state] += draw_T2
             current_state -= 1
 
         else:
@@ -93,11 +93,11 @@ def calc_n_bar(pi: list):
 
 
 def calc_TH1(C: int, mu_1: float, mu_2: float, pi: list):
-    return mu_1 * sum(pi[:C+1]) + mu_2 * pi[C+2]
+    return float(mu_1 * sum(pi[:C+1]) + mu_2 * pi[C+2])
 
 
 def calc_TH2(C: int, mu_1: float, pi: list):
-    return mu_1 * sum(pi[1:C+3])
+    return float(mu_1 * sum(pi[1:C+3]))
 
 
 if __name__ == "__main__":
@@ -109,10 +109,9 @@ if __name__ == "__main__":
 
     pi = calc_pi(C, mu_1, mu_2)
     n_bar = calc_n_bar(pi)
-    test = [calc_TH1(C, mu_1, mu_2, pi), calc_TH2(C, mu_1, pi)]
+    TH_i = [calc_TH1(C, mu_1, mu_2, pi), calc_TH2(C, mu_1, pi)]
 
     n_bar_exp, pi_exp, TH_i_exp = two_rel_machines(mu_1, mu_2, C, 1e5)
-
-    print(n_bar, n_bar_exp)
+    
     print(pi, pi_exp)
-    print(test, TH_i_exp)
+    print(TH_i, TH_i_exp)
