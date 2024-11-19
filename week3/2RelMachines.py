@@ -225,8 +225,8 @@ def calc_TH2(C: int, mu_2: float, pi: list):
 
 if __name__ == "__main__":
     C = 2
-    mu_1 = 0.4
-    mu_2 = 0.5
+    mu_1 = 0.1
+    mu_2 = 0.6
 
     # test_Q_sing(C, mu_1, mu_2)
 
