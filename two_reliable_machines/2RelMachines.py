@@ -26,24 +26,29 @@ def two_rel_machines(mu_1: float, mu_2: float, C: int, runtime: int):
         The estimated throughput of the first and second machines.
     """
     state_times = [0 for _ in range(C+3)]
-    t = 0
     TH_i = [0, 0]
+    transient_time = 1/10 * runtime
+    t = -transient_time
+    track_draw = [np.inf, np.inf]
     current_state = 0
 
     while t < runtime:
         if current_state == 0:
             draw_T1 = np.random.exponential(1/mu_1)
             t += draw_T1
-            state_times[current_state] += draw_T1
-            TH_i[0] += 1
+            if t > 0:
+                state_times[current_state] += draw_T1
+                TH_i[0] += 1
             current_state += 1
         
         elif current_state == C+2:
             draw_T2 = np.random.exponential(1/mu_2)
             t += draw_T2
-            TH_i[0] += 1
-            TH_i[1] += 1
-            state_times[current_state] += draw_T2
+
+            if t > 0:
+                TH_i[0] += 1
+                TH_i[1] += 1
+                state_times[current_state] += draw_T2
             current_state -= 1
 
         else:
@@ -52,17 +57,22 @@ def two_rel_machines(mu_1: float, mu_2: float, C: int, runtime: int):
 
             if draw_T1 < draw_T2:
                 t += draw_T1
-                state_times[current_state] += draw_T1
 
-                if current_state <= C:
-                    TH_i[0] += 1
+                if t > 0:
+                    state_times[current_state] += draw_T1
+
+                    if current_state <= C:
+                        TH_i[0] += 1
 
                 current_state += 1
 
             else:
                 t += draw_T2
-                state_times[current_state] += draw_T2
-                TH_i[1] += 1
+
+                if t > 0:
+                    state_times[current_state] += draw_T2
+                    TH_i[1] += 1
+
                 current_state -= 1
 
     pi_hat = [0 for _ in range(len(state_times))]
