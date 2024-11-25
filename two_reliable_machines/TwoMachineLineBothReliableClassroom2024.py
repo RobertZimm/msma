@@ -63,8 +63,6 @@ class TwoMachineLineBothReliable:
 # We now create an object of the class
 myTwoMachineLine = TwoMachineLineBothReliable("StefansLine", 10, 8, 2)
 
-print(myTwoMachineLine.Q)
-print(myTwoMachineLine.Qmod)
 print("Vector of state probablities is:", myTwoMachineLine.pi)
 
 print("Throughput via Machine 1 is:",
