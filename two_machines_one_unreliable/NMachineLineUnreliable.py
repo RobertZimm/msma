@@ -1,24 +1,24 @@
 import numpy as np
 
 
-def num_analysis(mu, C, TimeToBeSimulated):
+def num_analysis(mu, C, sim_duration):
     # Definition of codes (numbers) for events
-    ProcessStepCompletion = 1
-    MachineFailure = 2
-    MachineRepair = 3
+    process_step_completed = 1
+    machine_failure = 2
+    machine_repair = 3
 
-    NumberOfMachines = len(mu)
+    num_machines = len(mu)
 
-    if len(C) != NumberOfMachines - 1:
+    if len(C) != num_machines - 1:
         raise ValueError("Sizes of machine array and buffer array don't fit!")
 
-    TransientTimeLength = TimeToBeSimulated/10
+    trans_time = sim_duration/10
 
-    PartProcessed = np.zeros(NumberOfMachines, 
+    parts_processed = np.zeros(num_machines, 
                              dtype=int)
-    ExtendedBufferLevel = np.zeros(NumberOfMachines - 1, 
+    ext_buffer_level = np.zeros(num_machines - 1, 
                                    dtype=int)
-    TimeUntilNextWorkpieceCompletion = np.zeros(NumberOfMachines, 
+    time_until_next_part = np.zeros(num_machines, 
                                                 dtype=float)
 
     # First machine starts with a workpiece, all other machines idle and all buffers
@@ -27,85 +27,85 @@ def num_analysis(mu, C, TimeToBeSimulated):
     rng = np.random.default_rng(4711)
 
     # Processing time of the first workpiece on the first machine ( offset 0 )
-    TimeUntilNextWorkpieceCompletion[0] = rng.exponential(1 / mu[0])
+    time_until_next_part[0] = rng.exponential(1 / mu[0])
 
     # Initialize the other machines with plus infinity
-    for i in range(1, NumberOfMachines):
-        TimeUntilNextWorkpieceCompletion[i] = np.inf
+    time_until_next_part[1:] = np.inf
 
-    # Start simulation of this Markovian (!!) system
-    SimClock = -TransientTimeLength
+    # Start simulation of this Markovian system
+    sim_clock = -trans_time
 
-    while SimClock < TimeToBeSimulated:
-        TimeUntilNextEvent = np.inf
-        MachineWithNextEvent = np.inf
-        TypeOfNextEvent = 0  # no such event exists
-        for i in range(NumberOfMachines):
-            if (
-                i == 0
-                and ExtendedBufferLevel[i] < C[i] + 2
-                or i == NumberOfMachines - 1
-                and ExtendedBufferLevel[i - 1] > 0
-                or i > 0
-                and i < NumberOfMachines - 1
-                and ExtendedBufferLevel[i - 1] > 0
-                and ExtendedBufferLevel[i] < C[i] + 2
-            ):
-                if TimeUntilNextWorkpieceCompletion[i] < TimeUntilNextEvent:
-                    TimeUntilNextEvent = TimeUntilNextWorkpieceCompletion[i]
-                    MachineWithNextEvent = i  # next event at this current machine i
-                    TypeOfNextEvent = ProcessStepCompletion
+    while sim_clock < sim_duration:
+        time_until_next_event = np.inf
+        next_machine = np.inf
+        next_event_type = 0  # no such event exists
+
+        for machine_number in range(num_machines):
+            if isProductionReady(machine_number, 
+                                 ext_buffer_level, 
+                                 C, 
+                                 num_machines):
+                if time_until_next_part[
+                    machine_number] < time_until_next_event:
+                    time_until_next_event = time_until_next_part[
+                                                                machine_number]
+                    next_machine = machine_number  # next event at this current machine i
+                    next_event_type = process_step_completed
 
         # Advance in time
-        SimClock += TimeUntilNextEvent
+        sim_clock += time_until_next_event
 
         # Execute the next event
-        if TypeOfNextEvent == ProcessStepCompletion:
-            if MachineWithNextEvent == 0:
-                ExtendedBufferLevel[MachineWithNextEvent] = (
-                    ExtendedBufferLevel[MachineWithNextEvent] + 1
-                )
-            else:
-                if MachineWithNextEvent == NumberOfMachines - 1:
-                    ExtendedBufferLevel[MachineWithNextEvent - 1] -= 1
-                else:
-                    ExtendedBufferLevel[MachineWithNextEvent - 1] -= 1
-                    ExtendedBufferLevel[MachineWithNextEvent] += 1
+        if next_event_type == process_step_completed:
+            if next_machine == 0:
+                ext_buffer_level[next_machine] += 1
 
-            if SimClock > 0:
+            elif next_machine == num_machines - 1:
+                ext_buffer_level[next_machine - 1] -= 1
+                
+            else:
+                ext_buffer_level[next_machine - 1] -= 1
+                ext_buffer_level[next_machine] += 1
+
+            if sim_clock > 0:
                 # Transient phase is over, we begin to count the processed parts
-                PartProcessed[MachineWithNextEvent] += 1
+                parts_processed[next_machine] += 1
 
         # Given the new state, and USING THE MEMORYLESSNESS PROPERTY, we update
         # the times until the next events. Since it is a CTMC, we do not need an
         # event calender.
-        for i in range(NumberOfMachines):
-            if (
-                i == 0
-                and ExtendedBufferLevel[i] < C[i] + 2
-                or i == NumberOfMachines - 1
-                and ExtendedBufferLevel[i - 1] > 0
-                or i > 0
-                and i < NumberOfMachines - 1
-                and ExtendedBufferLevel[i - 1] > 0
-                and ExtendedBufferLevel[i] < C[i] + 2
-            ):
+        for machine_number in range(num_machines):
+            if isProductionReady(machine_number, 
+                                 ext_buffer_level, 
+                                 C, 
+                                 num_machines):
                 # This is for machines that are neither blocked nor starved
-                TimeUntilNextWorkpieceCompletion[i] = rng.exponential(1 / mu[i])
+                time_until_next_part[
+                    machine_number] = rng.exponential(1/mu[machine_number])
+                
             else:
-                TimeUntilNextWorkpieceCompletion[i] = np.inf
+                time_until_next_part[machine_number] = np.inf
 
-    Throughput = PartProcessed / TimeToBeSimulated
+    th = parts_processed / sim_duration
 
-    return Throughput, PartProcessed
+    return th, parts_processed
+
+
+def isProductionReady(machine_num, ext_buffer_level, C, num_machines):
+    return (machine_num == 0 and ext_buffer_level[machine_num] < C[machine_num] + 2
+                or 
+                machine_num == num_machines - 1 and ext_buffer_level[machine_num - 1] > 0
+                or 0 < machine_num < num_machines - 1
+                and ext_buffer_level[machine_num - 1] > 0
+                and ext_buffer_level[machine_num] < C[machine_num] + 2)
 
 
 
 if __name__ == "__main__":
-    mu = np.array([10, 8]) # rate of completion of machines
-    C = np.array([1000]) # Size of buffers between machines
-    TimeToBeSimulated = 10000 # time to be simulated
+    mu = np.array([10, 8, 8]) # rate of completion of machines
+    C = np.array([1000, 1000]) # Size of buffers between machines
+    sim_duration = 10000 # time to be simulated
 
-    th, parts_processed = num_analysis(mu, C, TimeToBeSimulated)
+    th, parts_processed = num_analysis(mu, C, sim_duration)
     print(th)
     print(parts_processed)
