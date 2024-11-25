@@ -37,29 +37,29 @@ class UnreliableProductionLine:
         trans_time = sim_duration/10
 
         # Initialize the state variables
-        parts_processed = np.zeros(self.num_machines, 
+        self.parts_processed = np.zeros(self.num_machines, 
                                 dtype=int)
-        ext_buffer_level = np.zeros(self.num_machines - 1, 
+        self.ext_buffer_level = np.zeros(self.num_machines - 1, 
                                     dtype=int)
-        time_until_next_part = np.zeros(self.num_machines, 
+        self.time_until_next_part = np.zeros(self.num_machines, 
                                         dtype=float)
         
-        machine_state = np.ones(self.num_machines, 
+        self.machine_states = np.ones(self.num_machines, 
                                 dtype=int)
         
         # If machine up: time until failure
         # If machine down: time until repair
-        time_until_state_change = np.zeros(self.num_machines, 
+        self.time_until_state_change = np.zeros(self.num_machines, 
                                             dtype=float)
 
         # Processing time of the first workpiece on the first machine ( offset 0 )
-        time_until_next_part[0] = rng.exponential(1/mu[0])
+        self.time_until_next_part[0] = rng.exponential(1/mu[0])
 
         # Initialize the other machines with plus infinity
-        time_until_next_part[1:] = np.inf
+        self.time_until_next_part[1:] = np.inf
 
         for i in range(self.num_machines):
-            time_until_state_change[i] = rng.exponential(1/p[i])
+            self.time_until_state_change[i] = rng.exponential(1/p[i])
 
         # Start simulation of this Markovian system
         sim_clock = -trans_time
@@ -74,17 +74,17 @@ class UnreliableProductionLine:
             # Get production ready machine 
             # with smallest time until next part
             for n in range(self.num_machines):
-                if (self.is_prod_ready(n, ext_buffer_level, machine_state)
-                    and time_until_next_part[n] < time_until_next_event):
-                    time_until_next_event = time_until_next_part[n]
+                if (self.is_prod_ready(n) 
+                    and self.time_until_next_part[n] < time_until_next_event):
+                    time_until_next_event = self.time_until_next_part[n]
                     next_machine = n 
                     next_event_type = self.PROCESS_STEP_COMPLETED
 
-                if time_until_state_change[n] < time_until_next_event:
-                    time_until_next_event = time_until_state_change[n]
+                if self.time_until_state_change[n] < time_until_next_event:
+                    time_until_next_event = self.time_until_state_change[n]
                     next_machine = n
 
-                    if machine_state[n] == self.MACHINE_UP:
+                    if self.machine_states[n] == self.MACHINE_UP:
                         next_event_type = self.MACHINE_FAILURE     
                     else:
                         next_event_type = self.MACHINE_REPAIR
@@ -95,61 +95,65 @@ class UnreliableProductionLine:
             # Execute the next event
             if next_event_type == self.PROCESS_STEP_COMPLETED:
                 if next_machine == 0:
-                    ext_buffer_level[next_machine] += 1
+                    self.ext_buffer_level[next_machine] += 1
 
                 elif next_machine == self.num_machines - 1:
-                    ext_buffer_level[next_machine - 1] -= 1
+                    self.ext_buffer_level[next_machine - 1] -= 1
                     
                 else:
-                    ext_buffer_level[next_machine - 1] -= 1
-                    ext_buffer_level[next_machine] += 1
+                    self.ext_buffer_level[next_machine - 1] -= 1
+                    self.ext_buffer_level[next_machine] += 1
 
                 # Transient phase is over, we begin to count the processed parts
                 if sim_clock > 0:
-                    parts_processed[next_machine] += 1
+                    self.parts_processed[next_machine] += 1
 
             elif next_event_type == self.MACHINE_FAILURE:
-                machine_state[next_machine] = self.MACHINE_DOWN
+                self.machine_states[next_machine] = self.MACHINE_DOWN
 
             elif next_event_type == self.MACHINE_REPAIR:
-                machine_state[next_machine] = self.MACHINE_UP
+                self.machine_states[next_machine] = self.MACHINE_UP
 
             # Given the new state, and USING THE MEMORYLESSNESS PROPERTY, we update
             # the times until the next events. Since it is a CTMC, we do not need an
             # event calender.
             for n in range(self.num_machines):
                 # This is for machines that are neither blocked nor starved
-                if self.is_prod_ready(n, 
-                                      ext_buffer_level, 
-                                      machine_state):
-                    time_until_next_part[n] = rng.exponential(1/mu[n])
+                if self.is_prod_ready(n):
+                    self.time_until_next_part[n] = rng.exponential(1/mu[n])
                 
                 # This is for machines that are blocked or starved
                 else:
-                    time_until_next_part[n] = np.inf
+                    self.time_until_next_part[n] = np.inf
 
-                if machine_state[n] == self.MACHINE_UP:
-                    time_until_state_change[n] = rng.exponential(1/p[n])
-                    
+                if self.machine_states[n] == self.MACHINE_UP:
+                    self.time_until_state_change[n] = rng.exponential(1/p[n])
+
                 else:
-                    time_until_state_change[n] = rng.exponential(1/r[n])
+                    self.time_until_state_change[n] = rng.exponential(1/r[n])
 
         # Calculate throughput 
-        th = parts_processed / sim_duration
+        self.th = self.parts_processed / sim_duration
 
-        return th, parts_processed
+        return self.th, self.parts_processed
 
 
-    def is_prod_ready(self, machine_num, ext_buffer_level, machine_state):
-        if machine_state[machine_num] == 0:
+    def is_prod_ready(self, 
+                      machine_num: int):
+        if self.machine_states[machine_num] == self.MACHINE_DOWN:
             return False
         
-        return (machine_num == 0 and ext_buffer_level[machine_num] < self.C[machine_num] + 2
-                    or 
-                    machine_num == self.num_machines - 1 and ext_buffer_level[machine_num - 1] > 0
-                    or 0 < machine_num < self.num_machines - 1
-                    and ext_buffer_level[machine_num - 1] > 0
-                    and ext_buffer_level[machine_num] < self.C[machine_num] + 2)
+        elif machine_num == 0:
+            return self.ext_buffer_level[machine_num] < self.C[machine_num] + 2
+        
+        elif machine_num == self.num_machines - 1:
+            return self.ext_buffer_level[machine_num - 1] > 0
+        
+        else:
+            return (
+                self.ext_buffer_level[machine_num - 1] > 0
+                and self.ext_buffer_level[machine_num] < self.C[machine_num] + 2
+            )
 
 
 if __name__ == "__main__":
@@ -173,6 +177,7 @@ if __name__ == "__main__":
 
     # Time to be simulated
     sim_duration = 10000 
+    seed = random.randint(0, 10000)
 
     # Initialize the production line
     prod_line = UnreliableProductionLine(mu=mu, 
@@ -182,6 +187,7 @@ if __name__ == "__main__":
 
     # Simulate
     th, parts_processed = prod_line.simulate(sim_duration=sim_duration, 
-                                             seed=random.randint(0, 10000))
+                                             seed=seed)
+    print("Seed:", seed)
     print("Throughput:", th)
     print("Parts processed in total:", parts_processed)
