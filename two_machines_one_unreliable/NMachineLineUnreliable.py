@@ -57,9 +57,9 @@ class UnreliableProductionLine:
 
         # Initialize the other machines with plus infinity
         self.time_until_next_part[1:] = np.inf
-
-        for i in range(self.num_machines):
-            self.time_until_state_change[i] = rng.exponential(1/p[i])
+        
+        self.time_until_state_change[0] = np.random.exponential(1/p[0]) 
+        self.time_until_state_change[1:] = np.inf
 
         # Start simulation of this Markovian system
         sim_clock = -trans_time
@@ -73,6 +73,7 @@ class UnreliableProductionLine:
 
             # Get production ready machine 
             # with smallest time until next part
+            # and smallest time until state change
             for n in range(self.num_machines):
                 if (self.is_prod_ready(n) 
                     and self.time_until_next_part[n] < time_until_next_event):
@@ -121,16 +122,16 @@ class UnreliableProductionLine:
                 # This is for machines that are neither blocked nor starved
                 if self.is_prod_ready(n):
                     self.time_until_next_part[n] = rng.exponential(1/mu[n])
+                    self.time_until_state_change[n] = rng.exponential(1/p[n])
                 
                 # This is for machines that are blocked or starved
+                elif self.machine_states[n] == self.MACHINE_DOWN:
+                    self.time_until_next_part[n] = np.inf
+                    self.time_until_state_change[n] = rng.exponential(1/r[n])
+
                 else:
                     self.time_until_next_part[n] = np.inf
-
-                if self.machine_states[n] == self.MACHINE_UP:
-                    self.time_until_state_change[n] = rng.exponential(1/p[n])
-
-                else:
-                    self.time_until_state_change[n] = rng.exponential(1/r[n])
+                    self.time_until_state_change[n] = np.inf
 
         # Calculate throughput 
         self.th = self.parts_processed / sim_duration
@@ -157,27 +158,16 @@ class UnreliableProductionLine:
 
 
 if __name__ == "__main__":
-    # Rate of repair
-    r = np.array([0.3, 
-                  0.3, 
-                  0.3]) 
-    
-    # Rate of failure
-    p = np.array([0.1,
-                  0.1,
-                  0.1]) 
-    
-    # Rate of completion of machines
-    mu = np.array([10, 
-                   10,
-                   10])
-    
+    mu = np.array([ 10,   11,   12, 13,   14]) # processing rates
+    p  = np.array([ 0.01, 0.01, 0.01, 0.01, 0.01]) # failure rates
+    r  = np.array([ 0.1,  0.1,  0.1,  0.1,  0.1]) # repair rates
+        
     # Size of buffers between machines
-    C = np.array([1000, 1000])
+    C = np.array([4, 3, 2, 1])
 
     # Time to be simulated
-    sim_duration = 10000 
-    seed = random.randint(0, 10000)
+    sim_duration = 0.1
+    seed = random.randint(0, 1000)
 
     # Initialize the production line
     prod_line = UnreliableProductionLine(mu=mu, 
