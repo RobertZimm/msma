@@ -166,7 +166,7 @@ if __name__ == "__main__":
     C = np.array([4, 3, 2, 1])
 
     # Time to be simulated
-    sim_duration = 0.1
+    sim_duration = 10000
     seed = random.randint(0, 1000)
 
     # Initialize the production line
