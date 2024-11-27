@@ -57,8 +57,14 @@ class TwoMachineLineBothReliable:
         return self.mu2 * (1 - self.pi[0][self.StN[0]])
         
     def calc_n_bar(self):
-        return sum([i * self.pi[0][i] for i in range(self.NumberOfStates)])
-
+        return sum([i * self.pi[0][self.StN[i]] for i in range(1, self.N+1)])
+    
+    def calc_n_bar_2(self):
+        n_bar = 0
+        for n in range(self.N+1): # n = 0, 1, ..., N
+            n_bar = n_bar + n * self.pi[0][self.StN[n]]
+            
+        return n_bar
 
 # We now create an object of the class
 myTwoMachineLine = TwoMachineLineBothReliable("StefansLine", 10, 8, 2)
