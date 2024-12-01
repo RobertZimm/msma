@@ -46,6 +46,7 @@ class TwoMachineLineFirstUnreliable:
                 if i != j:
                     self.Q[i, i] -= self.Q[i, j]
 
+
     def determineSteadyStateProbabilities(self):
         self.initializeGeneratorMatrix()
         self.Qmod = self.Q.copy()
@@ -75,21 +76,22 @@ class TwoMachineLineFirstUnreliable:
                     for alpha1 in [0, 1]])
 
 
-# We now create an object of the class
-myTwoMachineLine = TwoMachineLineFirstUnreliable("StefansLine", 
-                                                  mu1=1, 
-                                                  mu2=8, 
-                                                  p1=0.1, 
-                                                  r1=0.2, 
-                                                  C=200)
+if __name__ == "__main__":
+    # We now create an object of the class
+    myTwoMachineLine = TwoMachineLineFirstUnreliable("StefansLine", 
+                                                    mu1=1, 
+                                                    mu2=8, 
+                                                    p1=0.1, 
+                                                    r1=0.2, 
+                                                    C=200)
 
-print("Vector of state probablities is:", myTwoMachineLine.pi)
+    print("Vector of state probablities is:", myTwoMachineLine.pi)
 
-print("Throughput via Machine 1 is:",
-    myTwoMachineLine.calc_TH1(),)
+    print("Throughput via Machine 1 is:",
+        myTwoMachineLine.calc_TH1(),)
 
-print("Throughput via Machine 2 is:",
-    myTwoMachineLine.calc_TH2(),)
+    print("Throughput via Machine 2 is:",
+        myTwoMachineLine.calc_TH2(),)
 
-print("Average parts in the system is:", 
-      myTwoMachineLine.calc_n_bar())
+    print("Average parts in the system is:", 
+        myTwoMachineLine.calc_n_bar())
