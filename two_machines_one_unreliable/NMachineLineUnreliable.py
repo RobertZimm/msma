@@ -1,5 +1,6 @@
 import numpy as np
 import random
+import scipy.stats
 
 
 class UnreliableProductionLine:
@@ -41,6 +42,9 @@ class UnreliableProductionLine:
                                 dtype=int)
         self.ext_buffer_level = np.zeros(self.num_machines - 1, 
                                     dtype=int)
+        self.avg_buffer_level = np.zeros(self.num_machines - 1, 
+                                    dtype=float)
+        avg_counter = 0
         self.time_until_next_part = np.zeros(self.num_machines, 
                                         dtype=float)
         
@@ -109,6 +113,12 @@ class UnreliableProductionLine:
                 if sim_clock > 0:
                     self.parts_processed[next_machine] += 1
 
+                    # Update average buffer level
+                    for n in range(self.num_machines - 1):
+                        self.avg_buffer_level[n] += self.ext_buffer_level[n]
+
+                    avg_counter += 1
+
             elif next_event_type == self.MACHINE_FAILURE:
                 self.machine_states[next_machine] = self.MACHINE_DOWN
 
@@ -136,7 +146,11 @@ class UnreliableProductionLine:
         # Calculate throughput 
         self.th = self.parts_processed / sim_duration
 
-        return self.th, self.parts_processed
+        # Calculate average buffer level
+        for n in range(self.num_machines - 1):
+            self.avg_buffer_level[n] /= avg_counter
+
+        return self.th, self.parts_processed, self.avg_buffer_level
 
 
     def is_prod_ready(self, 
@@ -161,14 +175,24 @@ class UnreliableProductionLine:
                    M: int) -> tuple:
         th_m = []
         seeds = random.sample(range(0, 10000), M)
+        buffer_m = []
 
         for m in range(M):
-            th = self.simulate(sim_duration=sim_duration,
-                               seed=seeds[m])[0][0]
+            th, _, avg_buffer = self.simulate(sim_duration=sim_duration,
+                               seed=seeds[m])
 
-            th_m.append(th)
+            th_m.append(th[0])
+            buffer_m.append(avg_buffer)
 
-        return th_m
+        return th_m, buffer_m
+
+
+def mean_confidence_interval(data, alpha=0.05):
+    a = 1.0 * np.array(data)
+    n = len(a)
+    m, se = np.mean(a), scipy.stats.sem(a)
+    h = se * scipy.stats.t.ppf(1-alpha/2., n-1)
+    return m, m-h, m+h, h
 
 
 if __name__ == "__main__":
