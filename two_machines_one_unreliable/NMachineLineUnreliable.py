@@ -53,12 +53,12 @@ class UnreliableProductionLine:
                                             dtype=float)
 
         # Processing time of the first workpiece on the first machine ( offset 0 )
-        self.time_until_next_part[0] = rng.exponential(1/mu[0])
+        self.time_until_next_part[0] = rng.exponential(1/self.mu[0])
 
         # Initialize the other machines with plus infinity
         self.time_until_next_part[1:] = np.inf
         
-        self.time_until_state_change[0] = np.random.exponential(1/p[0]) 
+        self.time_until_state_change[0] = np.random.exponential(1/self.p[0]) 
         self.time_until_state_change[1:] = np.inf
 
         # Start simulation of this Markovian system
@@ -121,13 +121,13 @@ class UnreliableProductionLine:
             for n in range(self.num_machines):
                 # This is for machines that are neither blocked nor starved
                 if self.is_prod_ready(n):
-                    self.time_until_next_part[n] = rng.exponential(1/mu[n])
-                    self.time_until_state_change[n] = rng.exponential(1/p[n])
+                    self.time_until_next_part[n] = rng.exponential(1/self.mu[n])
+                    self.time_until_state_change[n] = rng.exponential(1/self.p[n])
                 
                 # This is for machines that are blocked or starved
                 elif self.machine_states[n] == self.MACHINE_DOWN:
                     self.time_until_next_part[n] = np.inf
-                    self.time_until_state_change[n] = rng.exponential(1/r[n])
+                    self.time_until_state_change[n] = rng.exponential(1/self.r[n])
 
                 else:
                     self.time_until_next_part[n] = np.inf
@@ -155,6 +155,20 @@ class UnreliableProductionLine:
                 self.ext_buffer_level[machine_num - 1] > 0
                 and self.ext_buffer_level[machine_num] < self.C[machine_num] + 2
             )
+        
+    def simulate_M(self,
+                   sim_duration: int,
+                   M: int) -> tuple:
+        th_m = []
+        seeds = random.sample(range(0, 10000), M)
+
+        for m in range(M):
+            th = self.simulate(sim_duration=sim_duration,
+                               seed=seeds[m])[0][0]
+
+            th_m.append(th)
+
+        return th_m
 
 
 if __name__ == "__main__":
@@ -166,7 +180,7 @@ if __name__ == "__main__":
     C = np.array([4, 3, 2, 1])
 
     # Time to be simulated
-    sim_duration = 10000
+    sim_duration = 5000
     seed = random.randint(0, 1000)
 
     # Initialize the production line
@@ -175,9 +189,7 @@ if __name__ == "__main__":
                                          p=p, 
                                          C=C)
 
-    # Simulate
-    th, parts_processed = prod_line.simulate(sim_duration=sim_duration, 
-                                             seed=seed)
-    print("Seed:", seed)
-    print("Throughput:", th)
-    print("Parts processed in total:", parts_processed)
+    # Simulate M times
+    M = 30
+    th_m = prod_line.simulate_M(sim_duration=sim_duration, M=M)
+    print("Throughput (M):", th_m)
