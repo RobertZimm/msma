@@ -141,7 +141,7 @@ class UnreliableProductionLine:
                     self.time_until_state_change[n] = np.inf
 
         # Calculate throughput 
-        self.th = self.parts_processed / sim_duration
+        self.th = self.parts_processed / sim_clock
 
         # Calculate average buffer level
         for n in range(self.num_machines - 1):
