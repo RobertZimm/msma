@@ -44,7 +44,6 @@ class UnreliableProductionLine:
                                     dtype=int)
         self.avg_buffer_level = np.zeros(self.num_machines - 1, 
                                     dtype=float)
-        avg_counter = 0
         self.time_until_next_part = np.zeros(self.num_machines, 
                                         dtype=float)
         
