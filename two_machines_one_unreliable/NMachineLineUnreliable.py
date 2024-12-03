@@ -115,9 +115,7 @@ class UnreliableProductionLine:
 
                     # Update average buffer level
                     for n in range(self.num_machines - 1):
-                        self.avg_buffer_level[n] += self.ext_buffer_level[n]
-
-                    avg_counter += 1
+                        self.avg_buffer_level[n] += self.ext_buffer_level[n]*time_until_next_event
 
             elif next_event_type == self.MACHINE_FAILURE:
                 self.machine_states[next_machine] = self.MACHINE_DOWN
@@ -148,7 +146,7 @@ class UnreliableProductionLine:
 
         # Calculate average buffer level
         for n in range(self.num_machines - 1):
-            self.avg_buffer_level[n] /= avg_counter
+            self.avg_buffer_level[n] /= sim_clock
 
         return self.th, self.parts_processed, self.avg_buffer_level
 
@@ -169,6 +167,7 @@ class UnreliableProductionLine:
                 self.ext_buffer_level[machine_num - 1] > 0
                 and self.ext_buffer_level[machine_num] < self.C[machine_num] + 2
             )
+            
         
     def simulate_M(self,
                    sim_duration: int,
@@ -190,7 +189,7 @@ class UnreliableProductionLine:
 def mean_confidence_interval(data, alpha=0.05):
     a = 1.0 * np.array(data)
     n = len(a)
-    m, se = np.mean(a), scipy.stats.sem(a)
+    m, se = np.mean(a), scipy.stats.sem(a, ddof=1)
     h = se * scipy.stats.t.ppf(1-alpha/2., n-1)
     return m, m-h, m+h, h
 
