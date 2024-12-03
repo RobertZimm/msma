@@ -3,7 +3,10 @@ import numpy.linalg as la
 
 
 class TwoMachineLineFirstUnreliable:
-    def __init__(self, name, mu1, mu2, p1, r1, C):
+    def __init__(self, name: str, 
+                 mu1: float, mu2: float,
+                 p1: float, r1: float, 
+                 C: int):
         self.name = name
         self.mu1 = mu1
         self.mu2 = mu2
