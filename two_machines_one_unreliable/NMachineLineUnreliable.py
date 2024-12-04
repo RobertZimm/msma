@@ -112,15 +112,16 @@ class UnreliableProductionLine:
                 if sim_clock > 0:
                     self.parts_processed[next_machine] += 1
 
-                    # Update average buffer level
-                    for n in range(self.num_machines - 1):
-                        self.avg_buffer_level[n] += self.ext_buffer_level[n]*time_until_next_event
-
             elif next_event_type == self.MACHINE_FAILURE:
                 self.machine_states[next_machine] = self.MACHINE_DOWN
 
             elif next_event_type == self.MACHINE_REPAIR:
                 self.machine_states[next_machine] = self.MACHINE_UP
+                
+            if sim_clock > 0:
+                # Update average buffer level
+                for n in range(self.num_machines - 1):
+                    self.avg_buffer_level[n] += self.ext_buffer_level[n]*min(sim_clock, time_until_next_event)
 
             # Given the new state, and USING THE MEMORYLESSNESS PROPERTY, we update
             # the times until the next events. Since it is a CTMC, we do not need an
@@ -194,15 +195,15 @@ def mean_confidence_interval(data, alpha=0.05):
 
 
 if __name__ == "__main__":
-    mu = np.array([ 10,   11,   12, 13,   14]) # processing rates
+    mu = np.array([ 10,10,10,10,10]) # processing rates
     p  = np.array([ 0.01, 0.01, 0.01, 0.01, 0.01]) # failure rates
     r  = np.array([ 0.1,  0.1,  0.1,  0.1,  0.1]) # repair rates
         
     # Size of buffers between machines
-    C = np.array([4, 3, 2, 1])
+    C = np.array([8,8,8,8], dtype=int)
 
     # Time to be simulated
-    sim_duration = 5000
+    sim_duration = 10000
     seed = random.randint(0, 1000)
 
     # Initialize the production line
@@ -212,6 +213,6 @@ if __name__ == "__main__":
                                          C=C)
 
     # Simulate M times
-    M = 30
+    M = 20
     th_m = prod_line.simulate_M(sim_duration=sim_duration, M=M)
     print("Throughput (M):", th_m)
