@@ -29,20 +29,21 @@ class TwoMachineLineFirstUnreliable:
             
         self.determineSteadyStateProbabilities()
 
+
     def initializeGeneratorMatrix(self):
         for n in range(self.N+1):
             for alpha1 in [0, 1]:
                 # second machine is not starved
                 if n > 0: 
-                    self.Q[self.num_func[n,alpha1], self.num_func[n - 1,alpha1]] = self.mu2
+                    self.Q[self.num_func[n, alpha1], self.num_func[n-1, alpha1]] = self.mu2
 
                 # first machine is not blocked
                 if n < self.N and alpha1 == 1:
-                    self.Q[self.num_func[n,1], self.num_func[n + 1,alpha1]] = self.mu1
-                    self.Q[self.num_func[n,1], self.num_func[n,0]] = self.p1
+                    self.Q[self.num_func[n, 1], self.num_func[n+1, 1]] = self.mu1
+                    self.Q[self.num_func[n, 1], self.num_func[n, 0]] = self.p1
 
                 elif alpha1 == 0:
-                    self.Q[self.num_func[n,0], self.num_func[n,1]] = self.r1
+                    self.Q[self.num_func[n, 0], self.num_func[n, 1]] = self.r1
 
         for i in range(self.num_states):
             for j in range(self.num_states):
@@ -81,7 +82,7 @@ class TwoMachineLineFirstUnreliable:
 
 if __name__ == "__main__":
     # We now create an object of the class
-    myTwoMachineLine = TwoMachineLineFirstUnreliable("StefansLine", 
+    myTwoMachineLine = TwoMachineLineFirstUnreliable("RobertsLine", 
                                                     mu1=1, 
                                                     mu2=8, 
                                                     p1=0.1, 
