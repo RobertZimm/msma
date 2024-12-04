@@ -41,17 +41,23 @@ class TwoMachineLineFirstUnreliable:
         for n in range(self.N+1):
             for alpha1 in [0, 1]:
                 for alpha2 in [0, 1]:
-                    if n < self.N and alpha1 == 1:  # first machine is not blocked
+                    # first machine is not blocked; 
+                    # can only fail if it can produce since it is ODF
+                    if n < self.N and alpha1 == 1:  
                         self.Q[self.num_func[n, 1, alpha2], self.num_func[n+1, 1, alpha2]] = self.mu1
                         self.Q[self.num_func[n, 1, alpha2], self.num_func[n, 0, alpha2]] = self.p1
 
-                    if n > 0 and alpha2 == 1:  # second machine is not starved
+                    # second machine is not starved; 
+                    # can only fail if it can produce since it is ODF
+                    if n > 0 and alpha2 == 1:  
                         self.Q[self.num_func[n, alpha1, 1], self.num_func[n-1, alpha1, 1]] = self.mu2
                         self.Q[self.num_func[n, alpha1, 1], self.num_func[n, alpha1, 0]] = self.p2
 
+                    # first machine down -> can be repaired
                     if alpha1 == 0:
                         self.Q[self.num_func[n, 0, alpha2], self.num_func[n, 1, alpha2]] = self.r1
 
+                    # second machine down -> can be repaired
                     if alpha2 == 0:
                         self.Q[self.num_func[n, alpha1, 0], self.num_func[n, alpha1, 1]] = self.r2
 
