@@ -191,20 +191,19 @@ def mean_confidence_interval(data, alpha=0.05):
     n = len(a)
     m, se = np.mean(a), scipy.stats.sem(a, ddof=1)
     h = se * scipy.stats.t.ppf(1-alpha/2., n-1)
-    return m, m-h, m+h, h
+    return m, (m-h, m+h)
 
 
 if __name__ == "__main__":
-    mu = np.array([ 10,10,10,10,10]) # processing rates
-    p  = np.array([ 0.01, 0.01, 0.01, 0.01, 0.01]) # failure rates
-    r  = np.array([ 0.1,  0.1,  0.1,  0.1,  0.1]) # repair rates
+    mu = np.array([1, 8]) # processing rates
+    p  = np.array([0.1, 0.001]) # failure rates
+    r  = np.array([0.2, 10]) # repair rates
         
     # Size of buffers between machines
-    C = np.array([8,8,8,8], dtype=int)
+    C = np.array([200], dtype=int)
 
     # Time to be simulated
     sim_duration = 10000
-    seed = random.randint(0, 1000)
 
     # Initialize the production line
     prod_line = UnreliableProductionLine(mu=mu, 
