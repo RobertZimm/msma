@@ -2,7 +2,7 @@ import numpy as np
 import numpy.linalg as la
 
 
-class TwoMachineLineFirstUnreliable:
+class TwoMachineLineBothUnreliable:
     def __init__(self, name: str, 
                  mu1: float, mu2: float,
                  p1: float, p2: float, 
@@ -101,11 +101,11 @@ class TwoMachineLineFirstUnreliable:
 
 if __name__ == "__main__":
     # We now create an object of the class
-    myTwoMachineLine = TwoMachineLineFirstUnreliable("RobertsLine", 
-                                                    mu1=1, mu2=8, 
-                                                    p1=0.1, p2=0.001, 
-                                                    r1=0.2, r2=10,
-                                                    C=200)
+    myTwoMachineLine = TwoMachineLineBothUnreliable("RobertsLine", 
+                                                    mu1=1, mu2=1.1, 
+                                                    p1=0.1, p2=0.2, 
+                                                    r1=0.2, r2=0.4,
+                                                    C=3)
 
     print("Vector of state probablities is:", myTwoMachineLine.pi)
 
